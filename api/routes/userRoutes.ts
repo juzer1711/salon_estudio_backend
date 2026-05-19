@@ -66,7 +66,7 @@ router.get(
         await UserDAO.getByUid(uid);
 
       if (!user) {
-        return res.status(404).json({
+        return res.status(200).json({
           exists: false,
         });
       }
