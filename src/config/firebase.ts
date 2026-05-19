@@ -1,19 +1,17 @@
-// src/config/firebase.ts
-import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
-import dotenv from "dotenv";
+import admin from "firebase-admin";
 
-dotenv.config();
+import serviceAccount from "../../serviceAccountKey.json";
 
-const firebaseConfig = {
-  apiKey: process.env.VITE_FIREBASE_API_KEY as string,
-  authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN as string,
-  projectId: process.env.VITE_FIREBASE_PROJECT_ID as string,
-  storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET as string,
-  messagingSenderId: process.env.VITE_FIREBASE_MESSAGING_SENDER_ID as string,
-  appId: process.env.VITE_FIREBASE_APP_ID as string,
-};
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert(
+      serviceAccount as admin.ServiceAccount
+    ),
+  });
+}
 
-const app = initializeApp(firebaseConfig);
+const db = admin.firestore();
 
-export const db = getFirestore(app);
+export { db };
+
+export default admin;
