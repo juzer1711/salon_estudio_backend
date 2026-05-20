@@ -7,10 +7,10 @@ export interface UserProfile {
   lastName: string;
   email: string;
   username: string;
-  avatarUrl: string;
+  avatarUrl?: string;
 }
 
-export class UserDAO {
+class UserDAO {
   /**
    * Verifica si el username está disponible
    */
@@ -58,17 +58,20 @@ export class UserDAO {
 
     const normalizedUsername =
       profile.username.toLowerCase().trim();
+    
+    const { avatarUrl, ...rest } = profile;
 
     await db
       .collection("users")
       .doc(profile.uid)
       .set({
-        ...profile,
-
+        ...rest,
+        ...(avatarUrl ? { avatarUrl } : {}), // solo lo incluye si tiene valor real
         username: normalizedUsername,
-
-        createdAt:
-          admin.firestore.FieldValue.serverTimestamp(),
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
       });
   }
 }
+
+// 2. Exportamos la clase y la interfaz como exportaciones nombradas
+export { UserDAO };

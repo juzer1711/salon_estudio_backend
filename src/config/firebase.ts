@@ -20,6 +20,7 @@ if (!admin.apps.length) {
 
 // 3. Exportamos las herramientas que usa tu app
 const db = admin.firestore();
+db.settings({ ignoreUndefinedProperties: true });
 
 export { db, admin };
 export default admin;
