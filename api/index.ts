@@ -14,7 +14,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "https://tu-frontend.vercel.app",
+      "https://salon-estudio-frontend.vercel.app",
     ],
     credentials: true,
   })
