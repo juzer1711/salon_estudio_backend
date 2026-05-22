@@ -71,6 +71,26 @@ export async function authMiddleware(
         .auth()
         .verifyIdToken(token);
 
+      /**
+       * =========================================
+       * VALIDATE EDUCATIONAL EMAIL
+       * =========================================
+       */
+
+    const email = decodedToken.email;
+
+      if (
+        !email ||
+        !email.toLowerCase().endsWith(".edu.co")
+      ) {
+        res.status(403).json({
+          message:
+            "Solo se permiten correos institucionales .edu.co",
+        });
+
+        return;
+      }
+
     /**
      * Inject authenticated user
      */
