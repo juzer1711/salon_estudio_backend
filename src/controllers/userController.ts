@@ -1,8 +1,12 @@
 import { Response } from "express";
 
 import { UserDAO } from "../daos/UserDAO";
-import { createProfileSchema } from "../schemas/userSchemas";
+import {
+  createProfileSchema,
+  updateProfileSchema,
+} from "../schemas/userSchemas";
 import { AuthenticatedRequest } from "../middlewares/authMiddleware";
+import admin from "../config/firebase";
 
 // =========================================
 // CHECK USERNAME AVAILABILITY
@@ -124,6 +128,138 @@ export async function createProfile(
     console.error("[createProfile] Error:", error);
     res.status(500).json({
       message: "Error al crear el perfil.",
+    });
+  }
+}
+
+export async function updateProfile(
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> {
+  try {
+    const uid = req.user?.uid;
+
+    if (!uid) {
+      res.status(401).json({
+        message: "No autorizado.",
+      });
+      return;
+    }
+
+    const validationResult =
+      updateProfileSchema.safeParse(req.body);
+
+    if (!validationResult.success) {
+      res.status(400).json({
+        message: "Error de validación.",
+        errors: validationResult.error.flatten(),
+      });
+      return;
+    }
+
+    const {
+      username,
+      firstName,
+      lastName,
+      email,
+      avatarUrl,
+    } = validationResult.data;
+
+    // Verificar username
+    const existingUsername =
+      await UserDAO.getByUsername(username);
+
+    if (
+      existingUsername &&
+      existingUsername.uid !== uid
+    ) {
+      res.status(409).json({
+        message: "El username ya está en uso.",
+      });
+      return;
+    }
+
+    // Verificar email
+    const existingEmail =
+      await UserDAO.getByEmail(email);
+
+    if (
+      existingEmail &&
+      existingEmail.uid !== uid
+    ) {
+      res.status(409).json({
+        message: "El correo ya está en uso.",
+      });
+      return;
+    }
+
+    // Actualizar email en Firebase Auth
+    await admin.auth().updateUser(uid, {
+      email,
+    });
+
+    // Actualizar Firestore
+    await UserDAO.updateProfile(uid, {
+      username,
+      firstName,
+      lastName,
+      email,
+      avatarUrl,
+    });
+
+    res.status(200).json({
+      message: "Perfil actualizado exitosamente.",
+    });
+
+  } catch (error) {
+    console.error("[updateProfile] Error:", error);
+
+    res.status(500).json({
+      message: "Error al actualizar el perfil.",
+    });
+  }
+}
+
+export async function deleteAccount(
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> {
+  try {
+    const uid = req.user?.uid;
+
+    if (!uid) {
+      res.status(401).json({
+        message: "No autorizado.",
+      });
+      return;
+    }
+
+    // Verificar existencia del usuario
+    const existingUser =
+      await UserDAO.getByUid(uid);
+
+    if (!existingUser) {
+      res.status(404).json({
+        message: "Usuario no encontrado.",
+      });
+      return;
+    }
+
+    // Eliminar perfil de Firestore
+    await UserDAO.deleteProfile(uid);
+
+    // Eliminar usuario de Firebase Auth
+    await admin.auth().deleteUser(uid);
+
+    res.status(200).json({
+      message: "Cuenta eliminada exitosamente.",
+    });
+
+  } catch (error) {
+    console.error("[deleteAccount] Error:", error);
+
+    res.status(500).json({
+      message: "Error al eliminar la cuenta.",
     });
   }
 }
