@@ -4,6 +4,8 @@ import {
   checkUsername,
   getMe,
   createProfile,
+  updateProfile,
+  deleteAccount,
 } from "../../src/controllers/userController";
 
 const router = Router();
@@ -38,6 +40,68 @@ router.get("/check-username/:username", checkUsername);
  *         description: Datos del usuario
  */
 router.get("/me", authMiddleware, getMe);
+
+/**
+ * @swagger
+ * /api/v1/users/me:
+ *   put:
+ *     summary: Actualizar perfil del usuario autenticado
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - username
+ *               - firstName
+ *               - lastName
+ *               - email
+ *             properties:
+ *               username:
+ *                 type: string
+ *               firstName:
+ *                 type: string
+ *               lastName:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               avatarUrl:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Perfil actualizado correctamente
+ *       400:
+ *         description: Error de validación
+ *       401:
+ *         description: No autorizado
+ *       409:
+ *         description: Username o correo ya en uso
+ */
+router.put("/me", authMiddleware, updateProfile);
+
+/**
+ * @swagger
+ * /api/v1/users/me:
+ *   delete:
+ *     summary: Eliminar cuenta del usuario autenticado
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Cuenta eliminada correctamente
+ *       401:
+ *         description: No autorizado
+ *       404:
+ *         description: Usuario no encontrado
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.delete("/me", authMiddleware, deleteAccount);
 
 /**
  * @swagger

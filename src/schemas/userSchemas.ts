@@ -32,3 +32,41 @@ export const createProfileSchema = z.object({
 
 export type CreateProfileDTO =
   z.infer<typeof createProfileSchema>;
+
+export const updateProfileSchema = z.object({
+  username: z
+    .string()
+    .trim()
+    .min(3)
+    .max(20)
+    .regex(
+      /^[a-zA-Z0-9_]+$/,
+      "Username inválido"
+    ),
+
+  firstName: z
+    .string()
+    .trim()
+    .min(2)
+    .max(50),
+
+  lastName: z
+    .string()
+    .trim()
+    .min(2)
+    .max(50),
+
+  email: z
+    .string()
+    .trim()
+    .email("Correo inválido"),
+
+  avatarUrl: z
+    .string()
+    .url()
+    .optional()
+    .or(z.literal("")),
+});
+
+export type UpdateProfileDTO =
+  z.infer<typeof updateProfileSchema>;

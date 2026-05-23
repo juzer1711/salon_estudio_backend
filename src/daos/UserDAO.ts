@@ -50,6 +50,52 @@ class UserDAO {
   }
 
   /**
+   * Obtener usuario por username
+   */
+  static async getByUsername(
+    username: string
+  ): Promise<UserProfile | null> {
+
+    const normalizedUsername =
+      username.toLowerCase().trim();
+
+    const snapshot = await db
+      .collection("users")
+      .where("username", "==", normalizedUsername)
+      .limit(1)
+      .get();
+
+    if (snapshot.empty) {
+      return null;
+    }
+
+    return snapshot.docs[0].data() as UserProfile;
+  }
+
+  /**
+   * Obtener usuario por email
+   */
+  static async getByEmail(
+    email: string
+  ): Promise<UserProfile | null> {
+
+    const normalizedEmail =
+      email.toLowerCase().trim();
+
+    const snapshot = await db
+      .collection("users")
+      .where("email", "==", normalizedEmail)
+      .limit(1)
+      .get();
+
+    if (snapshot.empty) {
+      return null;
+    }
+
+    return snapshot.docs[0].data() as UserProfile;
+  }
+
+  /**
    * Crear perfil
    */
   static async createProfile(
@@ -70,6 +116,41 @@ class UserDAO {
         username: normalizedUsername,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
       });
+  }
+
+  /**
+   * Actualizar perfil
+   */
+  static async updateProfile(
+    uid: string,
+    data: Partial<UserProfile>
+  ): Promise<void> {
+
+    const updateData = {
+      ...data,
+      username: data.username?.toLowerCase().trim(),
+      email: data.email?.toLowerCase().trim(),
+      updatedAt:
+        admin.firestore.FieldValue.serverTimestamp(),
+    };
+
+    await db
+      .collection("users")
+      .doc(uid)
+      .update(updateData);
+  }
+
+  /**
+   * Eliminar perfil
+   */
+  static async deleteProfile(
+    uid: string
+  ): Promise<void> {
+
+    await db
+      .collection("users")
+      .doc(uid)
+      .delete();
   }
 }
 
