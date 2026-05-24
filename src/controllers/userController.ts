@@ -165,6 +165,18 @@ export async function updateProfile(
       avatarUrl,
     } = validationResult.data;
 
+    // Validar correo institucional
+    if (
+      !email.toLowerCase().endsWith(".edu.co")
+    ) {
+      res.status(400).json({
+        message:
+          "Debes usar un correo institucional .edu.co",
+      });
+
+      return;
+    }
+
     // Verificar username
     const existingUsername =
       await UserDAO.getByUsername(username);
