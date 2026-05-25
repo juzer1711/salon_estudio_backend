@@ -3,6 +3,9 @@ import cors from "cors";
 import dotenv from "dotenv";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "../src/config/swagger";
+import http from "http";
+import { Server } from "socket.io";
+import { initializeSocketServer } from "../src/sockets/socketServer";
 
 import routes from "./routes/routes";
 
@@ -22,14 +25,25 @@ app.use(
 
 app.use(express.json());
 
-app.use("/api/v1", routes);
+app.use("/api", routes);
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 const PORT = process.env.PORT || 4000;
 
-app.listen(PORT, () => {
-  console.log(`
-🚀 Server running on port ${PORT}
-  `);
+const server =
+  http.createServer(app);
+
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+  },
+});
+
+initializeSocketServer(io);
+
+server.listen(PORT, () => {
+  console.log(
+    `Server running on port ${PORT}`
+  );
 });
