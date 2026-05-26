@@ -38,6 +38,7 @@ export const initializeSocketServer = (
           roomId,
           message,
           user,
+          avatarUrl,
         } = data;
 
         /**
@@ -51,6 +52,7 @@ export const initializeSocketServer = (
             roomId,
             message,
             user,
+            avatarUrl,
             createdAt:
               new Date().toISOString(),
           }
