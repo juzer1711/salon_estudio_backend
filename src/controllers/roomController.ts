@@ -142,3 +142,58 @@ export async function getMyRooms(
     });
   }
 }
+
+/**
+ * =========================================
+ * GET ROOM BY ID
+ * GET /api/v1/rooms/:roomId
+ * =========================================
+ */
+
+export async function getRoomById(
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> {
+  try {
+
+    const uid = req.user?.uid;
+
+    if (!uid) {
+      res.status(401).json({
+        message: "No autorizado.",
+      });
+
+      return;
+    }
+
+    const roomId =
+      req.params.roomId as string;
+
+    const room =
+      await RoomDAO.getById(roomId);
+
+    if (!room) {
+      res.status(404).json({
+        message: "Sala no encontrada.",
+      });
+
+      return;
+    }
+
+    res.status(200).json({
+      room,
+    });
+
+  } catch (error) {
+
+    console.error(
+      "[getRoomById] Error:",
+      error
+    );
+
+    res.status(500).json({
+      message:
+        "Error al obtener la sala.",
+    });
+  }
+}

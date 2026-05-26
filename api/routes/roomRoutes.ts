@@ -8,6 +8,10 @@ import {
   getMyRooms,
 } from "../../src/controllers/roomController";
 
+import {
+  getRoomById,
+} from "../../src/controllers/roomController";
+
 const router = Router();
 
 /**
@@ -36,4 +40,16 @@ router.get(
   getMyRooms
 );
 
+/**
+ * =========================================
+ * GET ROOM BY ID
+ * GET /api/v1/rooms/:roomId
+ * =========================================
+ */
+
+router.get(
+  "/:roomId",
+  authMiddleware,
+  getRoomById
+);
 export default router;
