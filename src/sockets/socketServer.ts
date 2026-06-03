@@ -1,77 +1,44 @@
 import { Server, Socket } from "socket.io";
 
+import {
+  registerRoomHandlers,
+} from "./roomHandlers";
+
+import {
+  registerChatHandlers,
+} from "./chatHandlers";
+
 export const initializeSocketServer = (
   io: Server
 ): void => {
 
-  io.on("connection", (socket: Socket) => {
+  io.on(
+    "connection",
+    (socket: Socket) => {
 
-    console.log(
-      `Usuario conectado: ${socket.id}`
-    );
+      console.log(
+        `Usuario conectado: ${socket.id}`
+      );
 
-    /**
-     * JOIN ROOM
-     */
+      registerRoomHandlers(
+        io,
+        socket
+      );
 
-    socket.on(
-      "join-room",
-      (roomId: string) => {
+      registerChatHandlers(
+        io,
+        socket
+      );
 
-        socket.join(roomId);
+      socket.on(
+        "disconnect",
+        () => {
 
-        console.log(
-          `Socket ${socket.id} joined ${roomId}`
-        );
-      }
-    );
-
-    /**
-     * SEND MESSAGE
-     */
-
-    socket.on(
-      "send-message",
-      async (data) => {
-
-        const {
-          roomId,
-          message,
-          user,
-          avatarUrl,
-        } = data;
-
-        /**
-         * Aquí luego:
-         * guardar en Firestore
-         */
-
-        io.to(roomId).emit(
-          "receive-message",
-          {
-            roomId,
-            message,
-            user,
-            avatarUrl,
-            createdAt:
-              new Date().toISOString(),
-          }
-        );
-      }
-    );
-
-    /**
-     * DISCONNECT
-     */
-
-    socket.on(
-      "disconnect",
-      () => {
-
-        console.log(
-          `Usuario desconectado: ${socket.id}`
-        );
-      }
-    );
-  });
+          console.log(
+            `Usuario desconectado: ${socket.id}`
+          );
+        }
+      );
+    }
+  );
 };
