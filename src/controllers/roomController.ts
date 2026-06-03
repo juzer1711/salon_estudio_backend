@@ -2,7 +2,10 @@ import { Response } from "express";
 import { nanoid } from "nanoid";
 
 import { RoomDAO } from "../daos/RoomDAO";
-import { createRoomSchema } from "../schemas/roomSchemas";
+import {
+  createRoomSchema,
+  updateRoomSchema,
+} from "../schemas/roomSchemas";
 import { AuthenticatedRequest } from "../middlewares/authMiddleware";
 import { UserDAO } from "../daos/UserDAO";
 
@@ -194,6 +197,178 @@ export async function getRoomById(
     res.status(500).json({
       message:
         "Error al obtener la sala.",
+    });
+  }
+}
+
+/**
+ * =========================================
+ * UPDATE ROOM
+ * PATCH /api/v1/rooms/:roomId
+ * =========================================
+ */
+
+export async function updateRoom(
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> {
+
+  try {
+
+    const uid = req.user?.uid;
+
+    if (!uid) {
+
+      res.status(401).json({
+        message: "No autorizado.",
+      });
+
+      return;
+    }
+
+    const roomId =
+      req.params.roomId as string;
+
+    const room =
+      await RoomDAO.getById(roomId);
+
+    if (!room) {
+
+      res.status(404).json({
+        message: "Sala no encontrada.",
+      });
+
+      return;
+    }
+
+    /**
+     * Solo el creador puede editar
+     */
+
+    if (room.ownerUid !== uid) {
+
+      res.status(403).json({
+        message:
+          "No tienes permisos para editar esta sala.",
+      });
+
+      return;
+    }
+
+    const validationResult =
+      updateRoomSchema.safeParse(req.body);
+
+    if (!validationResult.success) {
+
+      res.status(400).json({
+        message: "Error de validación.",
+        errors:
+          validationResult.error.flatten(),
+      });
+
+      return;
+    }
+
+    const { name } =
+      validationResult.data;
+
+    await RoomDAO.updateRoom(
+      roomId,
+      name
+    );
+
+    res.status(200).json({
+      message:
+        "Sala actualizada correctamente.",
+    });
+
+  } catch (error) {
+
+    console.error(
+      "[updateRoom] Error:",
+      error
+    );
+
+    res.status(500).json({
+      message:
+        "Error al actualizar la sala.",
+    });
+  }
+}
+
+/**
+ * =========================================
+ * DELETE ROOM
+ * DELETE /api/v1/rooms/:roomId
+ * =========================================
+ */
+
+export async function deleteRoom(
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> {
+
+  try {
+
+    const uid = req.user?.uid;
+
+    if (!uid) {
+
+      res.status(401).json({
+        message: "No autorizado.",
+      });
+
+      return;
+    }
+
+    const roomId =
+      req.params.roomId as string;
+
+    const room =
+      await RoomDAO.getById(roomId);
+
+    if (!room) {
+
+      res.status(404).json({
+        message: "Sala no encontrada.",
+      });
+
+      return;
+    }
+
+    /**
+     * Solo el creador puede eliminar
+     */
+
+    if (room.ownerUid !== uid) {
+
+      res.status(403).json({
+        message:
+          "No tienes permisos para eliminar esta sala.",
+      });
+
+      return;
+    }
+
+    await RoomDAO.deleteRoom(
+      roomId
+    );
+
+    res.status(200).json({
+      message:
+        "Sala eliminada correctamente.",
+    });
+
+  } catch (error) {
+
+    console.error(
+      "[deleteRoom] Error:",
+      error
+    );
+
+    res.status(500).json({
+      message:
+        "Error al eliminar la sala.",
     });
   }
 }

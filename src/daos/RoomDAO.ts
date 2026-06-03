@@ -68,6 +68,35 @@ class RoomDAO {
 
     return document.data() as StudyRoom;
   }
+
+  /**
+   * Actualizar nombre de sala
+   */
+  static async updateRoom(
+    roomId: string,
+    name: string
+  ): Promise<void> {
+
+    await db
+      .collection("rooms")
+      .doc(roomId)
+      .update({
+        name,
+      });
+  }
+
+  /**
+   * Eliminar sala
+   */
+  static async deleteRoom(
+    roomId: string
+  ): Promise<void> {
+
+    await db
+      .collection("rooms")
+      .doc(roomId)
+      .delete();
+  }
 }
 
 export { RoomDAO };
