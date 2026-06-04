@@ -97,6 +97,25 @@ class RoomDAO {
       .doc(roomId)
       .delete();
   }
+
+  /**
+ * Obtener todas las salas
+ */
+static async getAllRooms(): Promise<StudyRoom[]> {
+
+  const snapshot = await db
+    .collection("rooms")
+    .orderBy(
+      "createdAt",
+      "desc"
+    )
+    .get();
+
+  return snapshot.docs.map(
+    (doc) =>
+      doc.data() as StudyRoom
+  );
+}
 }
 
 export { RoomDAO };

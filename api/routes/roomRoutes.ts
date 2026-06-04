@@ -9,6 +9,9 @@ import {
   getRoomById,
   updateRoom,
   deleteRoom,
+  joinRoom,
+  leaveRoom,
+  getMyJoinedRooms,
 } from "../../src/controllers/roomController";
 
 const router = Router();
@@ -60,6 +63,27 @@ router.post("/", authMiddleware, createRoom);
  *         description: Error interno del servidor
  */
 router.get("/my-rooms", authMiddleware, getMyRooms);
+
+/**
+ * @swagger
+ * /api/v1/rooms/joined:
+ *   get:
+ *     summary: Obtener las salas a las que pertenece el usuario
+ *     tags: [Rooms]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista de salas donde el usuario es miembro
+ *       401:
+ *         description: No autorizado
+ */
+
+router.get(
+  "/joined",
+  authMiddleware,
+  getMyJoinedRooms
+);
 
 /**
  * @swagger
@@ -124,6 +148,66 @@ router.get("/:roomId", authMiddleware, getRoomById);
  *         description: Sala no encontrada
  */
 router.patch("/:roomId", authMiddleware, updateRoom);
+
+/**
+ * @swagger
+ * /api/v1/rooms/{roomId}/join:
+ *   post:
+ *     summary: Unirse a una sala
+ *     tags: [Rooms]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: roomId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Usuario unido a la sala
+ *       404:
+ *         description: Sala no encontrada
+ *       401:
+ *         description: No autorizado
+ */
+
+router.post(
+  "/:roomId/join",
+  authMiddleware,
+  joinRoom
+);
+
+/**
+ * @swagger
+ * /api/v1/rooms/{roomId}/leave:
+ *   delete:
+ *     summary: Abandonar una sala
+ *     tags: [Rooms]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: roomId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Usuario eliminado de la sala
+ *       400:
+ *         description: El propietario no puede abandonar la sala
+ *       404:
+ *         description: Sala no encontrada
+ *       401:
+ *         description: No autorizado
+ */
+
+router.delete(
+  "/:roomId/leave",
+  authMiddleware,
+  leaveRoom
+);
 
 /**
  * @swagger

@@ -8,6 +8,7 @@ import {
 } from "../schemas/roomSchemas";
 import { AuthenticatedRequest } from "../middlewares/authMiddleware";
 import { UserDAO } from "../daos/UserDAO";
+import { RoomMemberDAO } from "../daos/RoomMemberDAO";
 
 /**
  * =========================================
@@ -84,6 +85,11 @@ export async function createRoom(
       ownerName:
         `${user.firstName} ${user.lastName}`,
     });
+    await RoomMemberDAO.addMember(
+      roomId,
+      uid,
+      "OWNER"
+    );
 
     res.status(201).json({
       message:
@@ -369,6 +375,218 @@ export async function deleteRoom(
     res.status(500).json({
       message:
         "Error al eliminar la sala.",
+    });
+  }
+}
+
+export async function joinRoom(
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> {
+
+  try {
+
+    const uid =
+      req.user?.uid;
+
+    if (!uid) {
+
+      res.status(401).json({
+        message:
+          "No autorizado.",
+      });
+
+      return;
+    }
+
+    const roomId =
+      req.params.roomId as string;
+
+    const room =
+      await RoomDAO.getById(
+        roomId
+      );
+
+    if (!room) {
+
+      res.status(404).json({
+        message:
+          "Sala no encontrada.",
+      });
+
+      return;
+    }
+
+    const alreadyMember =
+      await RoomMemberDAO.isMember(
+        roomId,
+        uid
+      );
+
+    if (alreadyMember) {
+
+      res.status(200).json({
+        message:
+          "Ya perteneces a esta sala.",
+      });
+
+      return;
+    }
+
+    await RoomMemberDAO.addMember(
+      roomId,
+      uid,
+      "MEMBER"
+    );
+
+    res.status(200).json({
+      message:
+        "Te uniste a la sala.",
+    });
+
+  } catch (error) {
+
+    console.error(
+      "[joinRoom]",
+      error
+    );
+
+    res.status(500).json({
+      message:
+        "Error al unirse.",
+    });
+  }
+}
+
+export async function leaveRoom(
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> {
+
+  try {
+
+    const uid =
+      req.user?.uid;
+
+    if (!uid) {
+
+      res.status(401).json({
+        message:
+          "No autorizado.",
+      });
+
+      return;
+    }
+
+    const roomId =
+      req.params.roomId as string;
+
+    const room =
+      await RoomDAO.getById(
+        roomId
+      );
+
+    if (!room) {
+
+      res.status(404).json({
+        message:
+          "Sala no encontrada.",
+      });
+
+      return;
+    }
+
+    if (
+      room.ownerUid === uid
+    ) {
+
+      res.status(400).json({
+        message:
+          "El propietario no puede abandonar la sala."
+      });
+
+      return;
+    }
+
+    await RoomMemberDAO.removeMember(
+      roomId,
+      uid
+    );
+
+    res.status(200).json({
+      message:
+        "Has abandonado la sala."
+    });
+
+  } catch (error) {
+
+    console.error(
+      "[leaveRoom]",
+      error
+    );
+
+    res.status(500).json({
+      message:
+        "Error al abandonar sala."
+    });
+  }
+}
+
+export async function getMyJoinedRooms(
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> {
+
+  try {
+
+    const uid =
+      req.user?.uid;
+
+    if (!uid) {
+
+      res.status(401).json({
+        message:
+          "No autorizado.",
+      });
+
+      return;
+    }
+
+    const memberships =
+      await RoomMemberDAO
+        .getUserRooms(uid);
+    
+    const memberRooms =
+      memberships.filter(
+        (membership) =>
+          membership.role === "MEMBER"
+      );
+
+    const rooms =
+      await Promise.all(
+        memberRooms.map(
+          async (membership) =>
+            await RoomDAO.getById(
+              membership.roomId
+            )
+        )
+      );
+
+    res.status(200).json({
+      rooms:
+        rooms.filter(Boolean),
+    });
+
+  } catch (error) {
+
+    console.error(
+      "[getMyJoinedRooms]",
+      error
+    );
+
+    res.status(500).json({
+      message:
+        "Error al obtener salas."
     });
   }
 }
