@@ -417,6 +417,15 @@ export async function joinRoom(
       return;
     }
 
+    if (room.ownerUid === uid) {
+      res.status(400).json({
+        message:
+          "Ya eres el propietario de esta sala."
+      });
+
+      return;
+    }
+
     const alreadyMember =
       await RoomMemberDAO.isMember(
         roomId,
