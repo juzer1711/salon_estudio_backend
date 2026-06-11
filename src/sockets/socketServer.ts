@@ -8,6 +8,10 @@ import {
   registerChatHandlers,
 } from "./chatHandlers";
 
+import {
+  registerWebRtcHandlers,
+} from "./webRtcHandlers";
+
 export const initializeSocketServer = (
   io: Server
 ): void => {
@@ -26,6 +30,11 @@ export const initializeSocketServer = (
       );
 
       registerChatHandlers(
+        io,
+        socket
+      );
+
+      registerWebRtcHandlers(
         io,
         socket
       );
