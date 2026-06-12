@@ -62,6 +62,8 @@ socket.on(
         uid,
         username,
         avatarUrl,
+        isCameraOn,
+        isMicrophoneOn,
         } = data;
 
         if (
@@ -83,6 +85,10 @@ socket.on(
         uid,
         username,
         avatarUrl,
+        isCameraOn:
+          isCameraOn ?? true,
+        isMicrophoneOn:
+          isMicrophoneOn ?? true,
         };
 
         if (
