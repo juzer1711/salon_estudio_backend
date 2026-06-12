@@ -1,5 +1,10 @@
 import { Socket, Server } from "socket.io";
 
+import {
+  roomParticipants,
+  socketRooms,
+} from "./roomState";
+
 export function registerWebRtcHandlers(
   io: Server,
   socket: Socket
@@ -93,6 +98,68 @@ export function registerWebRtcHandlers(
         }
       );
 
+    }
+  );
+
+  socket.on(
+    "participant-media-state",
+    (data) => {
+
+      const roomId =
+        socketRooms[socket.id];
+
+      if (!roomId) {
+        return;
+      }
+
+      const {
+        isCameraOn,
+        isMicrophoneOn,
+      } = data ?? {};
+
+      const participant =
+        roomParticipants[roomId]
+          ?.find(
+            (p) =>
+              p.socketId === socket.id
+          );
+
+      if (!participant) {
+        return;
+      }
+
+      if (
+        typeof isCameraOn === "boolean"
+      ) {
+        participant.isCameraOn =
+          isCameraOn;
+      }
+
+      if (
+        typeof isMicrophoneOn === "boolean"
+      ) {
+        participant.isMicrophoneOn =
+          isMicrophoneOn;
+      }
+
+      socket
+        .to(roomId)
+        .emit(
+          "participant-media-state-updated",
+          {
+            socketId: socket.id,
+            uid: participant.uid,
+            isCameraOn:
+              participant.isCameraOn,
+            isMicrophoneOn:
+              participant.isMicrophoneOn,
+          }
+        );
+
+      io.to(roomId).emit(
+        "participants-updated",
+        roomParticipants[roomId]
+      );
     }
   );
 

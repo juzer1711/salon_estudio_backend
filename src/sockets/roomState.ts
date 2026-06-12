@@ -7,6 +7,10 @@ export interface Participant {
   username: string;
 
   avatarUrl?: string;
+
+  isCameraOn?: boolean;
+
+  isMicrophoneOn?: boolean;
 }
 
 export const roomParticipants:
