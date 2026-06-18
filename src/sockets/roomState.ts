@@ -11,6 +11,8 @@ export interface Participant {
   isCameraOn?: boolean;
 
   isMicrophoneOn?: boolean;
+
+  isScreenSharing?: boolean;
 }
 
 export const roomParticipants:
