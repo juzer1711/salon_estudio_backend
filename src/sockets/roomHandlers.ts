@@ -89,6 +89,7 @@ socket.on(
           isCameraOn ?? true,
         isMicrophoneOn:
           isMicrophoneOn ?? true,
+        isScreenSharing: false,
         };
 
         if (
@@ -121,7 +122,7 @@ socket.on(
     }
     );
 
-    socket.on(
+socket.on(
   "leave-room",
   () => {
 
@@ -129,6 +130,31 @@ socket.on(
       io,
       socket
     );
+  }
+);
+
+socket.on(
+  "screen-share-state",
+  (isScreenSharing: boolean) => {
+
+    const roomId = socketRooms[socket.id];
+
+    if (!roomId) return;
+
+    const participant =
+      roomParticipants[roomId].find(
+        p => p.socketId === socket.id
+      );
+
+    if (!participant) return;
+
+    participant.isScreenSharing = isScreenSharing;
+
+    io.to(roomId).emit(
+      "participants-updated",
+      roomParticipants[roomId]
+    );
+
   }
 );
 
