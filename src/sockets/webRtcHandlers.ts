@@ -5,6 +5,35 @@ import {
   socketRooms,
 } from "./roomState";
 
+function canSignalPeer(
+  fromSocketId: string,
+  targetSocketId: string
+): boolean {
+
+  const fromRoomId =
+    socketRooms[fromSocketId];
+
+  const targetRoomId =
+    socketRooms[targetSocketId];
+
+  if (
+    !fromRoomId ||
+    !targetRoomId ||
+    fromRoomId !== targetRoomId
+  ) {
+    return false;
+  }
+
+  return Boolean(
+    roomParticipants[fromRoomId]
+      ?.some(
+        (participant) =>
+          participant.socketId ===
+          targetSocketId
+      )
+  );
+}
+
 export function registerWebRtcHandlers(
   io: Server,
   socket: Socket
@@ -26,6 +55,17 @@ export function registerWebRtcHandlers(
         return;
       }
 
+      if (
+        !canSignalPeer(
+          socket.id,
+          targetSocketId
+        )
+      ) {
+        console.warn(
+          `[WebRTC] Oferta ignorada: ${socket.id} -> ${targetSocketId}`
+        );
+        return;
+      }
 
       io.to(
         targetSocketId
@@ -57,6 +97,18 @@ export function registerWebRtcHandlers(
         return;
       }
 
+      if (
+        !canSignalPeer(
+          socket.id,
+          targetSocketId
+        )
+      ) {
+        console.warn(
+          `[WebRTC] Respuesta ignorada: ${socket.id} -> ${targetSocketId}`
+        );
+        return;
+      }
+
       io.to(
         targetSocketId
       ).emit(
@@ -84,6 +136,18 @@ export function registerWebRtcHandlers(
         !targetSocketId ||
         !candidate
       ) {
+        return;
+      }
+
+      if (
+        !canSignalPeer(
+          socket.id,
+          targetSocketId
+        )
+      ) {
+        console.warn(
+          `[WebRTC] ICE ignorado: ${socket.id} -> ${targetSocketId}`
+        );
         return;
       }
 
