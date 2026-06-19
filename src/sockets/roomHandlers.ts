@@ -98,14 +98,24 @@ socket.on(
         roomParticipants[roomId] = [];
         }
 
-        const alreadyExists =
+        const existingParticipant =
         roomParticipants[roomId]
-            .some(
+            .find(
             (p) =>
                 p.socketId === socket.id
             );
 
-        if (!alreadyExists) {
+        if (existingParticipant) {
+
+        existingParticipant.uid = uid;
+        existingParticipant.username = username;
+        existingParticipant.avatarUrl = avatarUrl;
+        existingParticipant.isCameraOn =
+          isCameraOn ?? true;
+        existingParticipant.isMicrophoneOn =
+          isMicrophoneOn ?? true;
+
+        } else {
 
         roomParticipants[roomId]
             .push(participant);
@@ -148,7 +158,16 @@ socket.on(
 
     if (!participant) return;
 
-    participant.isScreenSharing = isScreenSharing;
+    roomParticipants[roomId].forEach(
+      (roomParticipant) => {
+
+        roomParticipant.isScreenSharing =
+          roomParticipant.socketId === socket.id
+            ? Boolean(isScreenSharing)
+            : false;
+
+      }
+    );
 
     io.to(roomId).emit(
       "participants-updated",
